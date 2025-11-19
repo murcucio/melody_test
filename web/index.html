@@ -119,6 +119,14 @@
         transform: none;
         box-shadow: none;
       }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .spinner {
+        display: inline-block;
+        animation: spin 1s linear infinite;
+      }
       .status {
         font-size: 0.95rem;
         color: #2563eb;
@@ -187,6 +195,30 @@
         color: #667295;
         margin-top: 4px;
       }
+      .emotion-tag {
+        background: #f3f4f6;
+        color: #374151;
+        border: 2px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        user-select: none;
+      }
+      .emotion-tag:hover {
+        background: #e5e7eb;
+        border-color: #d1d5db;
+      }
+      .emotion-tag.selected {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+      }
+      .emotion-tag.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
       footer {
         text-align: center;
         color: #667295;
@@ -230,18 +262,41 @@
         <input id="file-input" type="file" accept="image/png,image/jpeg,image/jpg,application/pdf" multiple />
         <div class="file-limit">이미지: 최대 5장, PDF: 최대 1개</div>
         <div id="file-list" class="file-list"></div>
-        <label>
-          <input id="wait-audio" type="checkbox" checked />
-             오디오 생성 완료까지 기다리기
-        </label>
-        <button id="generate-btn" type="button">멜로디 생성</button>
+        
+        <div id="emotion-tags-section" style="margin-bottom: 16px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600;">감정 태그 선택 (최대 5개) - 멜로디 생성 시 적용</label>
+          <div id="emotion-tags-container" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;"></div>
+          <div id="emotion-tags-count" style="font-size: 0.85rem; color: #667295;">0 / 5개 선택됨</div>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button id="generate-btn" type="button">
+            <span id="generate-btn-text">가사 생성</span>
+            <span id="generate-btn-spinner" style="display: none; margin-left: 8px;">⏳</span>
+          </button>
+          <button id="cancel-btn" type="button" style="display: none; background: #ef4444;">가사 생성 중단</button>
+          <button id="generate-melody-btn" type="button" style="display: none; background: #10b981;">
+            <span id="melody-btn-text">멜로디 생성</span>
+            <span id="melody-btn-spinner" style="display: none; margin-left: 8px;">⏳</span>
+          </button>
+        </div>
         <div id="status" class="status">텍스트를 입력하거나 이미지를 업로드하면 처리를 시작합니다.</div>
       </section>
 
       <section class="results">
         <h2>결과</h2>
-        <h3>추출된 텍스트</h3>
-        <pre id="study-text">-</pre>
+        <div style="margin-bottom: 16px;">
+          <h3 style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; user-select: none;" onclick="toggleStudyText()">
+            <span id="study-text-arrow" style="font-size: 0.9em; transition: transform 0.2s;">▶</span>
+            <span>추출된 텍스트</span>
+          </h3>
+          <div id="study-text-container" style="display: none; margin-top: 8px;">
+            <pre id="study-text">-</pre>
+          </div>
+        </div>
+
+        <h3>생성된 가사</h3>
+        <pre id="lyrics-text">-</pre>
 
         <h3>멜로디 가이드</h3>
         <pre id="plan-text">-</pre>

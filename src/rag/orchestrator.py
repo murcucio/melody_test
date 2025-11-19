@@ -76,12 +76,34 @@ class RAGOrchestrator:
             top_k=top_k
         )
         
+        # numpy 타입을 Python 기본 타입으로 변환 (JSON 직렬화를 위해)
+        def convert_numpy_types(obj):
+            """재귀적으로 numpy 타입을 Python 기본 타입으로 변환"""
+            import numpy as np
+            if isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, dict):
+                return {k: convert_numpy_types(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_numpy_types(item) for item in obj]
+            return obj
+        
+        # retrieved_docs의 numpy 타입 변환
+        retrieved_docs = convert_numpy_types(retrieved_docs)
+        
         # 3. Reasoner Agent
         reasoner_result = self.reasoner_agent.reason(
             query_result,
             retrieved_docs,
             task_type="lyrics_generation"
         )
+        
+        # reasoner_result의 numpy 타입 변환
+        reasoner_result = convert_numpy_types(reasoner_result)
         
         # 4. Generator Agent
         lyrics = self.generator_agent.generate_lyrics(
@@ -91,8 +113,8 @@ class RAGOrchestrator:
         )
         
         return {
-            "lyrics": lyrics,
-            "query_result": query_result,
+            "lyrics": str(lyrics) if lyrics else "",
+            "query_result": convert_numpy_types(query_result),
             "retrieved_docs": retrieved_docs,
             "reasoner_result": reasoner_result
         }

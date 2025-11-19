@@ -50,7 +50,13 @@ class DongyoVectorDB:
         # FAISS index 로드
         self.index = faiss.read_index(str(self.index_path))
         
-        print(f"✅ Vector DB 로드 완료: {len(self.metadata)}개 동요")
+        # 동요 개수 계산 (딕셔너리 또는 리스트 형태 모두 지원)
+        if isinstance(self.metadata, dict):
+            song_count = len(self.metadata.get("titles", []))
+        else:
+            song_count = len(self.metadata)
+        
+        print(f"✅ Vector DB 로드 완료: {song_count}개 동요")
     
     def search_similar(
         self, 
@@ -80,21 +86,54 @@ class DongyoVectorDB:
         # 결과 구성
         results = []
         for i, idx in enumerate(indices[0]):
-            if idx < len(self.metadata):
-                meta = self.metadata[idx]
-                # 다양한 키 이름 지원 (제목, 가사 특징 요약, 가사)
-                title = meta.get("제목") or meta.get("title", "")
-                feature_summary = meta.get("가사 특징 요약") or meta.get("feature_summary") or meta.get("특징", "")
-                lyrics = meta.get("가사") or meta.get("lyrics", "")
-                
-                result = {
-                    "index": int(idx),
-                    "distance": float(distances[0][i]),
-                    "title": title,
-                    "feature_summary": feature_summary,
-                    "lyrics": lyrics,
-                }
-                results.append(result)
+            # numpy 타입을 Python 기본 타입으로 변환
+            try:
+                if hasattr(idx, 'item'):
+                    idx_int = int(idx.item())
+                else:
+                    idx_int = int(idx)
+            except (ValueError, TypeError):
+                idx_int = int(idx)
+            
+            # metadata가 딕셔너리인지 리스트인지 확인
+            if isinstance(self.metadata, dict):
+                # 딕셔너리 형태인 경우
+                if idx_int < len(self.metadata.get("titles", [])):
+                    titles = self.metadata.get("titles", [])
+                    lyrics_list = self.metadata.get("lyrics", [])
+                    title = titles[idx_int] if idx_int < len(titles) else ""
+                    lyrics = lyrics_list[idx_int] if idx_int < len(lyrics_list) else ""
+                    feature_summary = ""
+                else:
+                    continue
+            else:
+                # 리스트 형태인 경우
+                if idx_int < len(self.metadata):
+                    meta = self.metadata[idx_int]
+                    # 다양한 키 이름 지원 (제목, 가사 특징 요약, 가사)
+                    title = meta.get("제목") if isinstance(meta, dict) else (meta.get("title") if isinstance(meta, dict) else "")
+                    feature_summary = meta.get("가사 특징 요약") if isinstance(meta, dict) else (meta.get("feature_summary") if isinstance(meta, dict) else (meta.get("특징") if isinstance(meta, dict) else ""))
+                    lyrics = meta.get("가사") if isinstance(meta, dict) else (meta.get("lyrics") if isinstance(meta, dict) else "")
+                else:
+                    continue
+            
+            # numpy 타입을 Python 기본 타입으로 변환
+            try:
+                if hasattr(distances[0][i], 'item'):
+                    distance_float = float(distances[0][i].item())
+                else:
+                    distance_float = float(distances[0][i])
+            except (ValueError, TypeError):
+                distance_float = float(distances[0][i])
+            
+            result = {
+                "index": idx_int,
+                "distance": distance_float,
+                "title": str(title) if title else "",
+                "feature_summary": str(feature_summary) if feature_summary else "",
+                "lyrics": str(lyrics) if lyrics else "",
+            }
+            results.append(result)
         
         return results
 

@@ -14,11 +14,84 @@
   - 다이어그램/차트: 학습용 요약 생성
 - **자동 종합 및 요약**: 여러 파일의 내용을 종합하여 일관된 학습 자료로 정리
 - **멜로디 가이드 생성**: 학습 텍스트를 기억하기 쉬운 멜로디 가이드로 변환
+- **동요 샘플 선택**: 기존 동요 멜로디를 선택하여 생성한 가사와 결합
 - **노래 생성**: Suno API를 사용하여 실제 노래 생성
 
 ## 설치
 
-### 1. 의존성 설치
+### 0. Docker로 실행 (권장)
+
+Docker를 사용하면 환경 설정 없이 바로 실행할 수 있습니다.
+
+#### Docker 이미지 빌드
+
+```bash
+docker build -t melody-learning:latest .
+```
+
+#### Docker 컨테이너 실행
+
+```bash
+docker run -p 8000:8000 \
+  -e OPENAI_API_KEY=your_openai_api_key_here \
+  -e SUNO_API_KEY=your_suno_api_key_here \
+  -v $(pwd)/data:/app/data \
+  melody-learning:latest
+```
+
+또는 `.env` 파일을 사용:
+
+```bash
+docker run -p 8000:8000 \
+  --env-file .env \
+  -v $(pwd)/data:/app/data \
+  melody-learning:latest
+```
+
+**참고**: 
+- `-v $(pwd)/data:/app/data`: 벡터 DB 데이터 파일을 마운트 (선택사항)
+- 브라우저에서 `http://localhost:8000` 접속
+
+### CI/CD 파이프라인
+
+이 프로젝트는 GitHub Actions를 사용한 CI/CD 파이프라인이 설정되어 있습니다.
+
+#### 자동 검증 항목
+
+코드를 GitHub에 푸시하면 자동으로 다음 검증이 실행됩니다:
+
+1. **코드 검증**
+   - Python 문법 검사
+   - Import 검사
+   - 코드 포맷팅 검사 (Black)
+   - 린터 검사 (Flake8)
+
+2. **Docker 빌드 테스트**
+   - Docker 이미지 빌드 성공 여부 확인
+   - 이미지 내부 검증
+
+3. **서버 시작 테스트**
+   - FastAPI 서버가 정상적으로 시작되는지 확인
+   - 헬스 체크 엔드포인트 검증
+
+#### CI/CD 워크플로우 확인
+
+GitHub 저장소의 **Actions** 탭에서 CI/CD 실행 상태를 확인할 수 있습니다:
+- ✅ 초록색: 모든 검증 통과
+- ❌ 빨간색: 검증 실패 (코드 수정 필요)
+- 🟡 노란색: 실행 중
+
+#### 자동 배포
+
+- **main 브랜치**에 푸시하면 자동으로 배포 준비가 완료됩니다
+- Railway가 GitHub과 연결되어 있으면 자동 배포가 시작됩니다
+- Railway 대시보드에서 "Auto Deploy" 설정을 활성화하세요
+
+#### 수동 실행
+
+GitHub Actions 탭에서 "Run workflow" 버튼을 클릭하여 수동으로 CI/CD를 실행할 수 있습니다.
+
+### 1. 의존성 설치 (로컬 실행)
 
 ```bash
 pip install -r requirements.txt
@@ -106,9 +179,16 @@ python3 -m http.server 3000
 2. PDF에서 텍스트가 자동으로 추출됩니다
 3. "멜로디 생성" 버튼 클릭
 
-#### 방법 4: 조합 사용
+#### 방법 4: 동요 샘플 선택
+1. "동요 샘플 선택" 드롭다운에서 원하는 동요 선택
+2. 선택한 동요의 가사와 미리듣기를 확인할 수 있습니다
+3. 샘플을 선택하면 생성된 가사가 선택한 동요의 멜로디와 결합됩니다
+4. "멜로디 생성" 버튼 클릭
+
+#### 방법 5: 조합 사용
 - 텍스트 입력 + 이미지 업로드
 - 이미지 여러 장 + PDF
+- 동요 샘플 선택 + 텍스트/이미지
 - 등등 자유롭게 조합 가능
 
 ### CLI로 실행
@@ -154,12 +234,31 @@ melody-learning-main/
 └── README.md                  # 이 파일
 ```
 
+## 동요 샘플 설정
+
+동요 샘플 오디오 파일을 추가하려면:
+
+1. `data/sample_audio_mapping.json.example` 파일을 참고하여 `data/sample_audio_mapping.json` 파일을 생성합니다
+2. 각 동요의 ID 또는 제목을 키로, 오디오 파일 URL을 값으로 설정합니다:
+
+```json
+{
+  "0": "https://example.com/audio/gage-nori.mp3",
+  "1": "https://example.com/audio/gawi-bawi-bo.mp3",
+  "가게놀이": "https://example.com/audio/gage-nori.mp3"
+}
+```
+
+3. 오디오 파일은 웹에서 접근 가능한 URL이어야 합니다 (로컬 파일 경로는 사용할 수 없습니다)
+4. 샘플 오디오가 없어도 동요 목록은 표시되며, 오디오 URL이 있는 경우에만 미리듣기가 가능합니다
+
 ## API 엔드포인트
 
 - `POST /extract-text`: 이미지(base64)에서 텍스트 추출
 - `POST /extract-from-files`: 다중 파일(이미지/PDF)에서 텍스트 추출 및 종합
 - `POST /mnemonic-plan`: 학습 텍스트로 멜로디 가이드 생성
-- `POST /generate-song`: Suno API로 노래 생성
+- `POST /generate-song`: Suno API로 노래 생성 (sample_song_id 파라미터로 샘플 선택 가능)
+- `GET /sample-songs`: 동요 샘플 목록 조회
 - `GET /health`: 헬스 체크
 - `GET /docs`: API 문서 (Swagger UI)
 

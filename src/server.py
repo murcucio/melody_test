@@ -44,6 +44,15 @@ app.mount(
     name="static",
 )
 
+# 오디오 파일 서빙: /audio/xxx.mp3 처럼 접근
+AUDIO_DIR = project_root / "data" / "audio"
+AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+app.mount(
+    "/audio",
+    StaticFiles(directory=str(AUDIO_DIR)),
+    name="audio",
+)
+
 # 루트(/)에서 index.html 반환
 @app.get("/", include_in_schema=False)
 async def serve_front():
@@ -72,16 +81,26 @@ class ExtractTextResponse(BaseModel):
 
 class MnemonicPlanRequest(BaseModel):
     study_text: str
+    lyrics: Optional[str] = None  # 이미 생성된 가사 (선택사항)
 
 
 class MnemonicPlanResponse(BaseModel):
     mnemonic_plan: str
 
 
+class GenerateLyricsRequest(BaseModel):
+    study_text: str
+
+
+class GenerateLyricsResponse(BaseModel):
+    lyrics: str
+
+
 class GenerateSongRequest(BaseModel):
     study_text: str
     mnemonic_plan: str
     wait_for_audio: bool = True
+    emotion_tags: Optional[List[str]] = None  # 선택한 감정 태그 리스트
 
 
 class GenerateSongResponse(BaseModel):
@@ -259,17 +278,44 @@ async def extract_from_files(files: List[UploadFile] = File(...)) -> ExtractText
         raise HTTPException(status_code=500, detail=f"파일 처리 실패: {str(e)}")
 
 
+@app.post("/generate-lyrics", response_model=GenerateLyricsResponse)
+async def generate_lyrics(req: GenerateLyricsRequest) -> GenerateLyricsResponse:
+    """학습 텍스트로부터 가사만 생성"""
+    try:
+        api_key = get_openai_key()
+        
+        # 가사 생성
+        from src.rag.orchestrator import RAGOrchestrator
+        orchestrator = RAGOrchestrator(api_key=api_key)
+        result = orchestrator.generate_lyrics(req.study_text, top_k=3, use_rag=True)
+        final_lyrics = result["lyrics"]
+        
+        # 문자열로 변환 (numpy 타입 등이 포함될 수 있으므로)
+        if not isinstance(final_lyrics, str):
+            final_lyrics = str(final_lyrics)
+        
+        return GenerateLyricsResponse(lyrics=final_lyrics)
+    except Exception as e:
+        import traceback
+        error_detail = f"{str(e)}\n{traceback.format_exc()}"
+        raise HTTPException(status_code=500, detail=f"가사 생성 실패: {error_detail}")
+
+
 @app.post("/mnemonic-plan", response_model=MnemonicPlanResponse)
 async def mnemonic_plan(req: MnemonicPlanRequest) -> MnemonicPlanResponse:
     """학습 텍스트로부터 가사를 먼저 생성하고, 그 가사를 포함한 멜로디 가이드 생성"""
     try:
         api_key = get_openai_key()
         
-        # 1. 가사를 먼저 생성
-        from src.rag.orchestrator import RAGOrchestrator
-        orchestrator = RAGOrchestrator(api_key=api_key)
-        result = orchestrator.generate_lyrics(req.study_text, top_k=3, use_rag=True)
-        final_lyrics = result["lyrics"]
+        # 가사가 제공되면 사용, 없으면 생성
+        if req.lyrics:
+            final_lyrics = req.lyrics
+        else:
+            # 1. 가사를 먼저 생성
+            from src.rag.orchestrator import RAGOrchestrator
+            orchestrator = RAGOrchestrator(api_key=api_key)
+            result = orchestrator.generate_lyrics(req.study_text, top_k=3, use_rag=True)
+            final_lyrics = result["lyrics"]
         
         # 2. 생성된 가사를 포함하여 멜로디 가이드 생성
         plan = create_mnemonic_plan(req.study_text, api_key, final_lyrics=final_lyrics)
@@ -299,7 +345,13 @@ async def generate_song(req: GenerateSongRequest) -> GenerateSongResponse:
             generator_agent = GeneratorAgent(api_key=openai_key)
             final_lyrics = generator_agent.generate_lyrics(req.study_text)
         
-        payload = build_suno_request(req.study_text, req.mnemonic_plan, final_lyrics=final_lyrics, api_key=openai_key)
+        payload = build_suno_request(
+            req.study_text, 
+            req.mnemonic_plan, 
+            final_lyrics=final_lyrics, 
+            api_key=openai_key,
+            emotion_tags=req.emotion_tags
+        )
         result = request_suno_song(payload, suno_key, wait=req.wait_for_audio)
 
         # Suno 응답에서 오디오 URL 추출
@@ -349,4 +401,5 @@ async def root() -> Dict[str, Any]:
 async def health() -> Dict[str, str]:
     """헬스 체크 엔드포인트"""
     return {"status": "ok"}
+
 
