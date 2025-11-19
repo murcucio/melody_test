@@ -27,8 +27,8 @@ from src.core.workflow import (
     extract_study_text_from_base64,
     request_suno_song,
 )
-from src.image_analyzer import analyze_multiple_images
-from src.pdf_processor import extract_text_from_pdf, is_pdf_file
+from src.processors.image_analyzer import analyze_multiple_images
+from src.processors.pdf_processor import extract_text_from_pdf, is_pdf_file
 
 load_dotenv()
 
@@ -196,7 +196,7 @@ async def extract_from_files(files: List[UploadFile] = File(...)) -> ExtractText
             # 여러 이미지 분석 및 종합
             if len(image_b64_list) == 1:
                 # 단일 이미지: 간단한 분석
-                from src.image_analyzer import analyze_image_for_education
+                from src.processors.image_analyzer import analyze_image_for_education
                 from openai import OpenAI
                 client = OpenAI(api_key=api_key)
                 img_text = analyze_image_for_education(image_b64_list[0], client)
@@ -266,8 +266,10 @@ async def mnemonic_plan(req: MnemonicPlanRequest) -> MnemonicPlanResponse:
         api_key = get_openai_key()
         
         # 1. 가사를 먼저 생성
-        from src.lyrics_generator import generate_lyrics
-        final_lyrics = generate_lyrics(req.study_text, api_key)
+        from src.rag.orchestrator import RAGOrchestrator
+        orchestrator = RAGOrchestrator(api_key=api_key)
+        result = orchestrator.generate_lyrics(req.study_text, top_k=3, use_rag=True)
+        final_lyrics = result["lyrics"]
         
         # 2. 생성된 가사를 포함하여 멜로디 가이드 생성
         plan = create_mnemonic_plan(req.study_text, api_key, final_lyrics=final_lyrics)
@@ -289,12 +291,13 @@ async def generate_song(req: GenerateSongRequest) -> GenerateSongResponse:
         openai_key = get_openai_key()
         
         # 멜로디 가이드에서 최종 가사 추출
-        from src.lyrics_extractor import extract_final_lyrics
+        from src.lyrics.lyrics_extractor import extract_final_lyrics
         final_lyrics = extract_final_lyrics(req.mnemonic_plan)
         if not final_lyrics:
             # 추출 실패 시 가사를 다시 생성
-            from src.lyrics_generator import generate_lyrics
-            final_lyrics = generate_lyrics(req.study_text, openai_key)
+            from src.rag.agents.generator_agent import GeneratorAgent
+            generator_agent = GeneratorAgent(api_key=openai_key)
+            final_lyrics = generator_agent.generate_lyrics(req.study_text)
         
         payload = build_suno_request(req.study_text, req.mnemonic_plan, final_lyrics=final_lyrics, api_key=openai_key)
         result = request_suno_song(payload, suno_key, wait=req.wait_for_audio)

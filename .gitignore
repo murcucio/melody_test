@@ -21,11 +21,6 @@ venv/
 # Logs
 *.log
 
-# Vector DB / large data (optional)
-data/*.index
-data/*.npy
-data/*.pkl
-
 # Dashboard logs (optional)
 dashboard_logs/*.csv
 
@@ -34,3 +29,5 @@ node_modules/
 
 # VSCode
 .vscode/
+
+outputs/

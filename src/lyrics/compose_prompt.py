@@ -1,7 +1,7 @@
 # src/compose_prompt.py
 import os
 from openai import OpenAI
-from src.lyrics_extractor import get_lyrics_from_mnemonic_plan
+from src.lyrics.lyrics_extractor import get_lyrics_from_mnemonic_plan
 
 # Suno API 가사 길이 제한 (커스텀 모드)
 MAX_LYRICS_LENGTH = 5000

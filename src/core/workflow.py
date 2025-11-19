@@ -12,12 +12,11 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.agents import build_mnemonic_plan
-from src.compose_prompt import build_suno_payload
-from src.suno_client import SunoClient
-from src.vision_to_query import image_bytes_to_study_text
-from src.lyrics_generator import generate_lyrics
-from src.lyrics_extractor import extract_final_lyrics
+from src.rag.agents.generator_agent import GeneratorAgent
+from src.lyrics.compose_prompt import build_suno_payload
+from src.clients.suno_client import SunoClient
+from src.processors.vision_to_query import image_bytes_to_study_text
+from src.lyrics.lyrics_extractor import extract_final_lyrics
 
 
 def extract_study_text(
@@ -48,8 +47,8 @@ def create_mnemonic_plan(
     final_lyrics: str = None,
     model: str = "gpt-4o-mini",
 ) -> str:
-    client = OpenAI(api_key=api_key)
-    return build_mnemonic_plan(client, study_text, final_lyrics=final_lyrics, model=model)
+    generator_agent = GeneratorAgent(api_key=api_key, model=model)
+    return generator_agent.generate_mnemonic_plan(study_text, final_lyrics=final_lyrics)
 
 
 def build_suno_request(study_text: str, mnemonic_plan: str, final_lyrics: str = None, api_key: Optional[str] = None) -> Dict[str, Any]:
