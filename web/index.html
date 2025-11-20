@@ -229,10 +229,16 @@
     <script>
   // 만약 로컬 file:/// 이거나 http://localhost 로 열면 로컬 서버 사용
   const isLocal = location.hostname === "localhost" || location.protocol === "file:";
-
+  
+  // Render나 Railway 등 배포 환경에서는 현재 도메인을 백엔드로 사용
+  // (같은 서버에서 프론트엔드와 백엔드를 모두 서빙하므로)
+  const isDeployed = !isLocal && (location.hostname.includes("render.com") || location.hostname.includes("railway.app"));
+  
   window.BACKEND_BASE = isLocal 
     ? "http://localhost:8000" 
-    : "https://melodytest-production.up.railway.app";
+    : isDeployed
+    ? `${location.protocol}//${location.host}`  // 현재 도메인 사용
+    : "https://melodytest-production.up.railway.app";  // 기본값
 </script>
 
 <script type="module" src="/static/main.js"></script>
