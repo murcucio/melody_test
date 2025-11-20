@@ -129,8 +129,8 @@ pencil은 연필, pencil은 연필
 - 예: "단어는 뜻, 단어는 뜻" 형태로 반복
 
 **4단계: 운율과 리듬 패턴 적용**
-{f"[리듬 패턴]\n{rhythm_pattern}\n" if rhythm_pattern else "- 기본 동요 리듬 적용"}
-{f"[운율 패턴]\n{rhyme_scheme}\n" if rhyme_scheme else "- 기본 운율 구조 적용"}
+{("[리듬 패턴]\n" + rhythm_pattern + "\n") if rhythm_pattern else "- 기본 동요 리듬 적용"}
+{("[운율 패턴]\n" + rhyme_scheme + "\n") if rhyme_scheme else "- 기본 운율 구조 적용"}
 
 **5단계: 최종 가사 작성**
 - 위 단계들을 종합하여 최종 가사를 작성하세요.
@@ -152,9 +152,9 @@ pencil은 연필, pencil은 연필
 [추천 사항]
 {recommendations if recommendations else ""}
 
-{f"[리듬 패턴]\n{rhythm_pattern}\n" if rhythm_pattern else ""}
-{f"[가락 스타일]\n{melody_style}\n" if melody_style else ""}
-{f"[운율 패턴]\n{rhyme_scheme}\n" if rhyme_scheme else ""}
+{("[리듬 패턴]\n" + rhythm_pattern + "\n") if rhythm_pattern else ""}
+{("[가락 스타일]\n" + melody_style + "\n") if melody_style else ""}
+{("[운율 패턴]\n" + rhyme_scheme + "\n") if rhyme_scheme else ""}
 
 [엄격한 제약 조건 - 절대적으로 지켜야 합니다]
 1. **원본 단어와 뜻만 사용 (확률: 0% 추가)**: 위에 나열된 단어와 뜻만 가사에 포함하세요. 원본 텍스트에 없는 단어, 인물명, 장소명, 조직명 등을 절대 추가하지 마세요.
@@ -215,8 +215,8 @@ pencil은 연필, pencil은 연필
 - 중요한 정보는 후렴구로 강조하세요.
 
 **4단계: 운율과 리듬 패턴 적용**
-{f"[리듬 패턴]\n{rhythm_pattern}\n" if rhythm_pattern else "- 기본 동요 리듬 적용"}
-{f"[운율 패턴]\n{rhyme_scheme}\n" if rhyme_scheme else "- 기본 운율 구조 적용"}
+{("[리듬 패턴]\n" + rhythm_pattern + "\n") if rhythm_pattern else "- 기본 동요 리듬 적용"}
+{("[운율 패턴]\n" + rhyme_scheme + "\n") if rhyme_scheme else "- 기본 운율 구조 적용"}
 
 **5단계: 최종 가사 작성**
 - 위 단계들을 종합하여 최종 가사를 작성하세요.
@@ -238,9 +238,9 @@ pencil은 연필, pencil은 연필
 [추천 사항]
 {recommendations if recommendations else ""}
 
-{f"[리듬 패턴]\n{rhythm_pattern}\n" if rhythm_pattern else ""}
-{f"[가락 스타일]\n{melody_style}\n" if melody_style else ""}
-{f"[운율 패턴]\n{rhyme_scheme}\n" if rhyme_scheme else ""}
+{("[리듬 패턴]\n" + rhythm_pattern + "\n") if rhythm_pattern else ""}
+{("[가락 스타일]\n" + melody_style + "\n") if melody_style else ""}
+{("[운율 패턴]\n" + rhyme_scheme + "\n") if rhyme_scheme else ""}
 
 [엄격한 제약 조건 - 절대적으로 지켜야 합니다]
 1. **원본 텍스트의 핵심 내용을 100% 반영 (누락 금지)**: 위에 제공된 "학습 텍스트"의 주요 정보, 사실, 개념을 모두 가사에 포함해야 합니다. 중요한 정보를 누락하면 안 됩니다.

@@ -136,27 +136,11 @@ uvicorn src.server:app --reload --host 0.0.0.0 --port 8000
 
 백엔드가 `http://localhost:8000`에서 실행됩니다.
 
-#### 2. 프론트엔드 서버 시작
+#### 2. 브라우저에서 접속
 
-터미널 2에서:
+브라우저에서 `http://localhost:8000`을 열고 사용하세요.
 
-```bash
-cd /Users/chloe/Downloads/melody-learning-main
-python3 -m http.server --directory web 3000
-```
-
-또는:
-
-```bash
-cd web
-python3 -m http.server 3000
-```
-
-프론트엔드가 `http://localhost:3000`에서 실행됩니다.
-
-#### 3. 브라우저에서 접속
-
-브라우저에서 `http://localhost:3000`을 열고 사용하세요.
+**참고**: FastAPI 서버가 프론트엔드도 함께 서빙하므로 별도의 프론트엔드 서버를 실행할 필요가 없습니다.
 
 ### 사용 방법
 
