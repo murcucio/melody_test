@@ -438,6 +438,7 @@ async function handleGenerateMelody() {
     const songResp = await postJSON("/generate-song", {
       study_text: currentStudyText,
       mnemonic_plan: mnemonicPlan,
+      lyrics: generatedLyrics,  // 생성된 가사를 직접 전달 (중요!)
       wait_for_audio: true,  // 멜로디 생성은 항상 완료까지 대기
       emotion_tags: selectedEmotionTags,  // 선택된 감정 태그 전달
       retrieved_docs: retrievedDocs,  // 검색된 동요 정보 전달

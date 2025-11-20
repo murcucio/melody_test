@@ -70,10 +70,12 @@ class RAGOrchestrator:
         # 1. Query Understanding Agent
         query_result = self.query_agent.process(study_text)
         
-        # 2. Retriever Agent
+        # 2. Retriever Agent (하이브리드 검색 + 메타데이터 필터링)
         retrieved_docs = self.retriever_agent.retrieve(
             query_result["search_query"],
-            top_k=top_k
+            top_k=top_k,
+            categories=query_result.get("categories"),  # 카테고리 필터링
+            use_hybrid=True  # 하이브리드 검색 활성화
         )
         
         # numpy 타입을 Python 기본 타입으로 변환 (JSON 직렬화를 위해)

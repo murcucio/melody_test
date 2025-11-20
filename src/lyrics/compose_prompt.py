@@ -105,108 +105,128 @@ def build_suno_payload(mnemonic_plan, study_text, final_lyrics: str = None, api_
             # API 키가 없으면 그냥 잘라내기
             lyrics = truncate_lyrics(lyrics, MAX_LYRICS_LENGTH)
     
-    # 감정 태그를 스타일에 반영
+    # 감정 태그를 스타일에 반영 (간결하게)
     emotion_style_parts = []
     if emotion_tags and len(emotion_tags) > 0:
-        # 감정 태그를 영어로 변환하여 스타일에 추가
+        # 감정 태그를 영어로 변환하여 스타일에 추가 (간결한 버전)
         emotion_translations = {
-            "통통튀는": "bouncy, upbeat",
-            "신나는": "energetic, exciting",
-            "슬픈": "sad, melancholic",
-            "밝은": "bright, cheerful",
-            "따뜻한": "warm, cozy",
-            "차분한": "calm, peaceful",
-            "활기찬": "lively, vibrant",
-            "부드러운": "soft, gentle",
-            "강렬한": "intense, powerful",
-            "평화로운": "peaceful, serene",
-            "에너지 넘치는": "high energy, dynamic",
-            "로맨틱한": "romantic, tender",
-            "웃긴": "funny, humorous",
-            "장난스러운": "playful, mischievous",
-            "진지한": "serious, solemn",
-            "드라마틱한": "dramatic, theatrical",
-            "몽환적인": "dreamy, ethereal",
-            "격렬한": "fierce, intense",
-            "우아한": "elegant, graceful",
-            "자유로운": "free, liberating",
-            "긴장감 있는": "tense, suspenseful",
-            "편안한": "comfortable, relaxed",
-            "신비로운": "mysterious, mystical",
-            "웅장한": "grand, majestic",
-            "섬세한": "delicate, refined",
-            "역동적인": "dynamic, energetic",
-            "감성적인": "emotional, sentimental",
-            "경쾌한": "light, breezy",
-            "잔잔한": "calm, tranquil",
-            "열정적인": "passionate, fiery"
+            "통통튀는": "bouncy",
+            "신나는": "energetic",
+            "슬픈": "sad",
+            "밝은": "bright",
+            "따뜻한": "warm",
+            "차분한": "calm",
+            "활기찬": "lively",
+            "부드러운": "soft",
+            "강렬한": "intense",
+            "평화로운": "peaceful",
+            "에너지 넘치는": "energetic",
+            "로맨틱한": "romantic",
+            "웃긴": "funny",
+            "장난스러운": "playful",
+            "진지한": "serious",
+            "드라마틱한": "dramatic",
+            "몽환적인": "dreamy",
+            "격렬한": "fierce",
+            "우아한": "elegant",
+            "자유로운": "free",
+            "긴장감 있는": "tense",
+            "편안한": "relaxed",
+            "신비로운": "mysterious",
+            "웅장한": "grand",
+            "섬세한": "delicate",
+            "역동적인": "dynamic",
+            "감성적인": "emotional",
+            "경쾌한": "light",
+            "잔잔한": "tranquil",
+            "열정적인": "passionate"
         }
         
-        for tag in emotion_tags:
+        # 최대 3개만 선택하여 길이 제한
+        for tag in emotion_tags[:3]:
             if tag in emotion_translations:
                 emotion_style_parts.append(emotion_translations[tag])
     
-    # 검색된 동요의 스타일 정보 추출
+    # 검색된 동요의 스타일 정보 추출 (간결하게)
     reference_style_parts = []
     if retrieved_docs and len(retrieved_docs) > 0:
-        # 검색된 동요들의 특징을 스타일에 반영
-        reference_titles = [doc.get('title', '') for doc in retrieved_docs[:3]]  # 상위 3개만
-        reference_style_parts.append(f"similar to Korean children's songs: {', '.join(reference_titles)}")
+        # 검색된 동요들의 특징을 스타일에 반영 (제목은 최대 2개만, 간결하게)
+        reference_titles = [doc.get('title', '')[:20] for doc in retrieved_docs[:2]]  # 상위 2개만, 각 20자 제한
+        if reference_titles:
+            reference_style_parts.append(f"Korean children's song style")
     
     if reasoner_result:
         melody_style = reasoner_result.get("melody_style", "")
         rhythm_pattern = reasoner_result.get("rhythm_pattern", "")
-        if melody_style:
-            reference_style_parts.append(f"melody style: {melody_style}")
-        if rhythm_pattern:
-            reference_style_parts.append(f"rhythm: {rhythm_pattern}")
+        if melody_style and len(melody_style) <= 50:  # 길이 제한
+            reference_style_parts.append(melody_style[:50])
+        if rhythm_pattern and len(rhythm_pattern) <= 30:  # 길이 제한
+            reference_style_parts.append(rhythm_pattern[:30])
     
-    # 기본 스타일 + 감정 태그 스타일 + 참고 동요 스타일
+    # 스타일을 최대한 간결하게 만들어서 가사에 집중
     # 두 개의 트랙을 생성: 하나는 여자 보컬, 다른 하나는 남자 보컬
-    base_style_female = (
-        "K-pop ballad / Korean language / Korean lyrics / "
-        "warm female vocal / soft piano & strings / 85–92 BPM / "
-        "bright educational jingle, clear Korean diction, playful synth pop, "
-        "memorable hook, repetition for easy memorisation"
-    )
+    # 스타일을 최소화하여 가사가 정확히 반영되도록 함
+    base_style = "Korean children's song"
     
-    base_style_male = (
-        "K-pop ballad / Korean language / Korean lyrics / "
-        "warm male vocal / soft piano & strings / 85–92 BPM / "
-        "bright educational jingle, clear Korean diction, playful synth pop, "
-        "memorable hook, repetition for easy memorisation"
-    )
-    
-    # 참고 동요 스타일 추가
-    if reference_style_parts:
-        reference_style_str = ", ".join(reference_style_parts)
-        base_style_female = f"{base_style_female}, {reference_style_str}"
-        base_style_male = f"{base_style_male}, {reference_style_str}"
-    
+    # 감정 태그만 간결하게 추가 (최대 2개)
     if emotion_style_parts:
-        style_female = f"{base_style_female}, {', '.join(emotion_style_parts)}"
-        style_male = f"{base_style_male}, {', '.join(emotion_style_parts)}"
+        emotion_str = ", ".join(emotion_style_parts[:2])
+        style_base = f"{base_style}, {emotion_str}"
     else:
-        style_female = base_style_female
-        style_male = base_style_male
+        style_base = base_style
+    
+    # 여자 보컬과 남자 보컬 스타일 (간결하게)
+    style_female = f"{style_base}, female vocal"
+    style_male = f"{style_base}, male vocal"
     
     # 두 가지 스타일을 모두 포함 (Suno API가 두 개의 트랙을 생성하도록)
-    # 첫 번째는 여자 보컬, 두 번째는 남자 보컬
+    # 같은 가사를 사용하도록 명시
     style = f"{style_female} | {style_male}"
+    
+    # 최종 스타일 길이 확인 및 제한 (1000자 제한)
+    if len(style) > 1000:
+        # 스타일을 더 줄이기
+        style = f"{base_style}, female vocal | {base_style}, male vocal"
     
     # callBackUrl 설정 (환경 변수에서 가져오거나 기본값 사용)
     callback_url = os.getenv("SUNO_CALLBACK_URL", "https://httpbin.org/post")
     
+    # 가사 정리 (불필요한 공백, 줄바꿈 정리)
+    # 가사는 그대로 유지 (줄바꿈은 유지하여 구조 보존)
+    lyrics_cleaned = lyrics.strip()
+    
+    # 빈 줄은 하나로 정리하되, 가사 구조는 유지
+    lines = [line.strip() for line in lyrics_cleaned.split("\n")]
+    lyrics_cleaned = "\n".join([line for line in lines if line])  # 빈 줄만 제거
+    
+    # 가사가 비어있으면 에러
+    if not lyrics_cleaned:
+        raise ValueError("가사가 비어있습니다.")
+    
+    # 디버깅: 전달되는 가사 확인
+    if os.getenv("DEBUG", "").lower() == "true":
+        print(f"[DEBUG] Suno API에 전달될 가사 (원본 길이: {len(lyrics)}):")
+        print(lyrics_cleaned[:300] + "..." if len(lyrics_cleaned) > 300 else lyrics_cleaned)
+    
+    # Suno API에 가사를 정확히 전달하기 위한 페이로드
+    # customMode에서 prompt가 가사로 직접 사용됨 (순수 가사만 전달, 지시사항 없이)
     payload = {
         "customMode": True,
         "instrumental": False,
         "model": "V4_5",  # V3_5 | V4 | V4_5 | V4_5PLUS | V5
         "style": style,
         "title": "Learning Song",
-        # 커스텀 모드에서 prompt가 '가사'로 사용됨 (한국어 가사)
-        "prompt": lyrics,
+        # 커스텀 모드에서 prompt가 가사로 직접 사용됨
+        # 순수 가사만 전달 (지시사항이나 설명 없이)
+        "prompt": lyrics_cleaned,
         "callBackUrl": callback_url,
         "callbackUrl": callback_url,  # 두 가지 형식 모두 지원
     }
+    
+    # 디버깅을 위한 로그 (항상 출력하여 가사 확인)
+    print(f"[Suno] 전달되는 가사 (길이: {len(lyrics_cleaned)}자):")
+    print(lyrics_cleaned[:200] + "..." if len(lyrics_cleaned) > 200 else lyrics_cleaned)
+    print(f"[Suno] 스타일: {style[:100]}...")
+    print(f"[Suno] 페이로드 prompt 필드 (처음 100자): {payload.get('prompt', '')[:100]}...")
     
     return payload

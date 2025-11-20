@@ -100,11 +100,12 @@ class GenerateLyricsResponse(BaseModel):
 
 class GenerateSongRequest(BaseModel):
     study_text: str
-    retrieved_docs: Optional[List[Dict[str, Any]]] = None
-    reasoner_result: Optional[Dict[str, Any]] = None
     mnemonic_plan: str
+    lyrics: Optional[str] = None  # 생성된 가사 (직접 전달, 우선 사용)
     wait_for_audio: bool = True
     emotion_tags: Optional[List[str]] = None  # 선택한 감정 태그 리스트
+    retrieved_docs: Optional[List[Dict[str, Any]]] = None
+    reasoner_result: Optional[Dict[str, Any]] = None
 
 
 class GenerateSongResponse(BaseModel):
@@ -345,14 +346,21 @@ async def generate_song(req: GenerateSongRequest) -> GenerateSongResponse:
         # OpenAI API 키를 가져와서 가사 길이 제한 시 요약에 사용
         openai_key = get_openai_key()
         
-        # 멜로디 가이드에서 최종 가사 추출
-        from src.lyrics.lyrics_extractor import extract_final_lyrics
-        final_lyrics = extract_final_lyrics(req.mnemonic_plan)
-        if not final_lyrics:
-            # 추출 실패 시 가사를 다시 생성
-            from src.rag.agents.generator_agent import GeneratorAgent
-            generator_agent = GeneratorAgent(api_key=openai_key)
-            final_lyrics = generator_agent.generate_lyrics(req.study_text)
+        # 생성된 가사 우선 사용 (프론트엔드에서 직접 전달받은 가사)
+        final_lyrics = req.lyrics
+        if not final_lyrics or not final_lyrics.strip():
+            # 가사가 없으면 멜로디 가이드에서 추출 시도
+            from src.lyrics.lyrics_extractor import extract_final_lyrics
+            final_lyrics = extract_final_lyrics(req.mnemonic_plan)
+            if not final_lyrics or not final_lyrics.strip():
+                # 추출 실패 시 가사를 다시 생성
+                from src.rag.agents.generator_agent import GeneratorAgent
+                generator_agent = GeneratorAgent(api_key=openai_key)
+                final_lyrics = generator_agent.generate_lyrics(req.study_text)
+        
+        # 가사가 비어있으면 에러
+        if not final_lyrics or not final_lyrics.strip():
+            raise HTTPException(status_code=400, detail="가사가 없습니다. 먼저 가사를 생성해주세요.")
         
         payload = build_suno_request(
             req.study_text, 
