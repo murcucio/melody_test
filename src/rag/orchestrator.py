@@ -7,6 +7,7 @@ from src.rag.agents.query_agent import QueryUnderstandingAgent
 from src.rag.agents.retriever_agent import RetrieverAgent
 from src.rag.agents.reasoner_agent import ReasonerAgent
 from src.rag.agents.generator_agent import GeneratorAgent
+from src.rag.agents.self_rag_agent import SelfRAGAgent
 
 
 class RAGOrchestrator:
@@ -30,6 +31,7 @@ class RAGOrchestrator:
         self.retriever_agent = RetrieverAgent(api_key, embeddings_path, index_path)
         self.reasoner_agent = ReasonerAgent(api_key, model)
         self.generator_agent = GeneratorAgent(api_key, model)
+        self.self_rag_agent = SelfRAGAgent(api_key, model)
     
     def generate_lyrics(
         self,
@@ -114,10 +116,22 @@ class RAGOrchestrator:
             retrieved_docs
         )
         
+        # 5. Self-RAG Agent: 생성된 가사 검증 및 개선
+        self_rag_result = self.self_rag_agent.verify_and_improve(
+            str(lyrics) if lyrics else "",
+            study_text,
+            retrieved_docs,
+            reasoner_result
+        )
+        
+        # 개선된 가사 사용 (개선이 없으면 원본 사용)
+        final_lyrics = self_rag_result.get("improved_lyrics", str(lyrics) if lyrics else "")
+        
         return {
-            "lyrics": str(lyrics) if lyrics else "",
+            "lyrics": final_lyrics,
             "query_result": convert_numpy_types(query_result),
             "retrieved_docs": retrieved_docs,
-            "reasoner_result": reasoner_result
+            "reasoner_result": reasoner_result,
+            "self_rag_result": convert_numpy_types(self_rag_result)
         }
 
