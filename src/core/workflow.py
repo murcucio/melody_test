@@ -51,14 +51,14 @@ def create_mnemonic_plan(
     return generator_agent.generate_mnemonic_plan(study_text, final_lyrics=final_lyrics)
 
 
-def build_suno_request(study_text: str, mnemonic_plan: str, final_lyrics: str = None, api_key: Optional[str] = None, emotion_tags: Optional[list] = None) -> Dict[str, Any]:
+def build_suno_request(study_text: str, mnemonic_plan: str, final_lyrics: str = None, api_key: Optional[str] = None, emotion_tags: Optional[list] = None, retrieved_docs: Optional[list] = None, reasoner_result: Optional[dict] = None) -> Dict[str, Any]:
     # 최종 가사가 제공되면 그걸 사용, 없으면 멜로디 가이드에서 추출
     if not final_lyrics:
         final_lyrics = extract_final_lyrics(mnemonic_plan)
         if not final_lyrics:
             final_lyrics = study_text  # 폴백
     
-    return build_suno_payload(mnemonic_plan, study_text, final_lyrics=final_lyrics, api_key=api_key, emotion_tags=emotion_tags)
+    return build_suno_payload(mnemonic_plan, study_text, final_lyrics=final_lyrics, api_key=api_key, emotion_tags=emotion_tags, retrieved_docs=retrieved_docs, reasoner_result=reasoner_result)
 
 
 def request_suno_song(

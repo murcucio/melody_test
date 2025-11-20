@@ -40,13 +40,17 @@ class ReasonerAgent:
                 "context_summary": 컨텍스트 요약
             }
         """
-        # 검색된 문서를 컨텍스트로 포맷팅
+        # 검색된 문서를 컨텍스트로 포맷팅 (가사 포함)
         context = ""
         if retrieved_docs:
             context = "\n[참고 동요 정보]\n"
             for i, doc in enumerate(retrieved_docs, 1):
                 context += f"\n{i}. {doc['title']}\n"
                 context += f"   특징: {doc['feature_summary']}\n"
+                if doc.get('lyrics'):
+                    # 가사 전체 또는 일부를 포함하여 운율/리듬 분석 가능하도록
+                    lyrics_preview = doc['lyrics'][:300] if len(doc['lyrics']) > 300 else doc['lyrics']
+                    context += f"   가사: {lyrics_preview}\n"
         
         categories_str = ", ".join([
             f"{k}: {v}" for k, v in query_result.get("categories", {}).items() 
@@ -69,15 +73,21 @@ class ReasonerAgent:
 다음 JSON 형식으로만 출력해주세요:
 {{
     "reasoning": "검색된 동요들과 사용자 요청을 통합한 추론 과정",
-    "recommendations": "가사 생성 시 고려할 사항들",
+    "recommendations": "가사 생성 시 고려할 사항들 (운율, 리듬, 가락 패턴 포함)",
     "style_guide": "추천하는 스타일과 톤 (예: 밝고 경쾌한, 따뜻한, 교육적인 등)",
-    "context_summary": "참고할 동요들의 공통 특징 요약"
+    "context_summary": "참고할 동요들의 공통 특징 요약",
+    "rhythm_pattern": "참고 동요들의 리듬 패턴 분석 (예: 4/4박자, 경쾌한 8비트 등)",
+    "melody_style": "참고 동요들의 가락 스타일 (예: 상행 멜로디, 반복적인 후렴구 등)",
+    "rhyme_scheme": "참고 동요들의 운율 패턴 (예: AABB, ABAB 등)"
 }}
 
 [요구사항]
 - reasoning은 검색된 동요와 사용자 요청을 연결하는 논리적 추론
-- recommendations는 구체적이고 실행 가능한 제안
+- recommendations는 구체적이고 실행 가능한 제안 (운율, 리듬, 가락 패턴 포함)
 - style_guide는 가사 생성 시 참고할 스타일
+- rhythm_pattern은 참고 동요들의 리듬 특징을 분석하여 새 가사에 적용할 패턴 제시
+- melody_style은 참고 동요들의 가락 특징을 분석하여 멜로디 생성 시 참고할 스타일 제시
+- rhyme_scheme은 참고 동요들의 운율 패턴을 분석하여 새 가사에 적용할 운율 구조 제시
 - JSON 형식만 출력하고 다른 설명은 하지 마세요"""
 
         response = self.client.chat.completions.create(
@@ -101,6 +111,9 @@ class ReasonerAgent:
             "recommendations": result.get("recommendations", ""),
             "style_guide": result.get("style_guide", ""),
             "context_summary": result.get("context_summary", ""),
+            "rhythm_pattern": result.get("rhythm_pattern", ""),
+            "melody_style": result.get("melody_style", ""),
+            "rhyme_scheme": result.get("rhyme_scheme", ""),
             "categories": query_result.get("categories", {}),
             "intent": query_result.get("intent", "")
         }

@@ -27,6 +27,9 @@ let lyricsAbortController = null;
 // 생성된 가사와 학습 텍스트 저장
 let generatedLyrics = null;
 let currentStudyText = null;
+// 검색된 동요 정보 저장 (멜로디 생성 시 활용)
+let retrievedDocs = null;
+let reasonerResult = null;
 // 선택된 감정 태그
 let selectedEmotionTags = [];
 
@@ -315,6 +318,8 @@ async function handleGenerate() {
     setPre(planTextEl, "-");
     generatedLyrics = null;
     currentStudyText = null;
+    retrievedDocs = null;
+    reasonerResult = null;
 
     let studyText = "";
     
@@ -367,6 +372,9 @@ async function handleGenerate() {
       );
       
       generatedLyrics = lyricsResp.lyrics || "";
+      // 검색된 동요 정보 저장 (멜로디 생성 시 활용)
+      retrievedDocs = lyricsResp.retrieved_docs || null;
+      reasonerResult = lyricsResp.reasoner_result || null;
       setPre(lyricsTextEl, generatedLyrics);
       setStatus("가사 생성 완료! 멜로디 생성을 진행하시겠습니까?");
       setButtonLoading(generateBtn, generateBtnText, generateBtnSpinner, false);
@@ -432,6 +440,8 @@ async function handleGenerateMelody() {
       mnemonic_plan: mnemonicPlan,
       wait_for_audio: true,  // 멜로디 생성은 항상 완료까지 대기
       emotion_tags: selectedEmotionTags,  // 선택된 감정 태그 전달
+      retrieved_docs: retrievedDocs,  // 검색된 동요 정보 전달
+      reasoner_result: reasonerResult,  // 추론 결과 전달
     });
     renderAudio(songResp.audio_urls || []);
 

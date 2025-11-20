@@ -77,7 +77,7 @@ def summarize_for_lyrics(text: str, api_key: str, max_length: int = MAX_LYRICS_L
         return truncate_lyrics(text, max_length)
 
 
-def build_suno_payload(mnemonic_plan, study_text, final_lyrics: str = None, api_key: str = None, emotion_tags: list = None):
+def build_suno_payload(mnemonic_plan, study_text, final_lyrics: str = None, api_key: str = None, emotion_tags: list = None, retrieved_docs: list = None, reasoner_result: dict = None):
     """
     Build a request payload for Suno's song generation endpoint.
     Reference: https://api.sunoapi.org/docs
@@ -146,7 +146,22 @@ def build_suno_payload(mnemonic_plan, study_text, final_lyrics: str = None, api_
             if tag in emotion_translations:
                 emotion_style_parts.append(emotion_translations[tag])
     
-    # 기본 스타일 + 감정 태그 스타일
+    # 검색된 동요의 스타일 정보 추출
+    reference_style_parts = []
+    if retrieved_docs and len(retrieved_docs) > 0:
+        # 검색된 동요들의 특징을 스타일에 반영
+        reference_titles = [doc.get('title', '') for doc in retrieved_docs[:3]]  # 상위 3개만
+        reference_style_parts.append(f"similar to Korean children's songs: {', '.join(reference_titles)}")
+    
+    if reasoner_result:
+        melody_style = reasoner_result.get("melody_style", "")
+        rhythm_pattern = reasoner_result.get("rhythm_pattern", "")
+        if melody_style:
+            reference_style_parts.append(f"melody style: {melody_style}")
+        if rhythm_pattern:
+            reference_style_parts.append(f"rhythm: {rhythm_pattern}")
+    
+    # 기본 스타일 + 감정 태그 스타일 + 참고 동요 스타일
     # 두 개의 트랙을 생성: 하나는 여자 보컬, 다른 하나는 남자 보컬
     base_style_female = (
         "K-pop ballad / Korean language / Korean lyrics / "
@@ -161,6 +176,12 @@ def build_suno_payload(mnemonic_plan, study_text, final_lyrics: str = None, api_
         "bright educational jingle, clear Korean diction, playful synth pop, "
         "memorable hook, repetition for easy memorisation"
     )
+    
+    # 참고 동요 스타일 추가
+    if reference_style_parts:
+        reference_style_str = ", ".join(reference_style_parts)
+        base_style_female = f"{base_style_female}, {reference_style_str}"
+        base_style_male = f"{base_style_male}, {reference_style_str}"
     
     if emotion_style_parts:
         style_female = f"{base_style_female}, {', '.join(emotion_style_parts)}"

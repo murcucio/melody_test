@@ -94,10 +94,14 @@ class GenerateLyricsRequest(BaseModel):
 
 class GenerateLyricsResponse(BaseModel):
     lyrics: str
+    retrieved_docs: Optional[List[Dict[str, Any]]] = None
+    reasoner_result: Optional[Dict[str, Any]] = None
 
 
 class GenerateSongRequest(BaseModel):
     study_text: str
+    retrieved_docs: Optional[List[Dict[str, Any]]] = None
+    reasoner_result: Optional[Dict[str, Any]] = None
     mnemonic_plan: str
     wait_for_audio: bool = True
     emotion_tags: Optional[List[str]] = None  # 선택한 감정 태그 리스트
@@ -294,7 +298,12 @@ async def generate_lyrics(req: GenerateLyricsRequest) -> GenerateLyricsResponse:
         if not isinstance(final_lyrics, str):
             final_lyrics = str(final_lyrics)
         
-        return GenerateLyricsResponse(lyrics=final_lyrics)
+        # 검색된 동요 정보와 추론 결과 반환 (멜로디 생성 시 활용)
+        return GenerateLyricsResponse(
+            lyrics=final_lyrics,
+            retrieved_docs=result.get("retrieved_docs"),
+            reasoner_result=result.get("reasoner_result")
+        )
     except Exception as e:
         import traceback
         error_detail = f"{str(e)}\n{traceback.format_exc()}"
@@ -350,7 +359,9 @@ async def generate_song(req: GenerateSongRequest) -> GenerateSongResponse:
             req.mnemonic_plan, 
             final_lyrics=final_lyrics, 
             api_key=openai_key,
-            emotion_tags=req.emotion_tags
+            emotion_tags=req.emotion_tags,
+            retrieved_docs=req.retrieved_docs,
+            reasoner_result=req.reasoner_result
         )
         result = request_suno_song(payload, suno_key, wait=req.wait_for_audio)
 

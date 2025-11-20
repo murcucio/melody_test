@@ -63,6 +63,9 @@ class GeneratorAgent:
         # Reasoner 결과 활용
         style_guide = reasoner_result.get("style_guide", "")
         recommendations = reasoner_result.get("recommendations", "")
+        rhythm_pattern = reasoner_result.get("rhythm_pattern", "")
+        melody_style = reasoner_result.get("melody_style", "")
+        rhyme_scheme = reasoner_result.get("rhyme_scheme", "")
         
         # 단어장 형식 감지 (예: "apple : 사과", "book: 책" 등)
         is_vocabulary = self._detect_vocabulary_format(study_text)
@@ -96,6 +99,10 @@ class GeneratorAgent:
 [추천 사항]
 {recommendations if recommendations else ""}
 
+{f"[리듬 패턴]\n{rhythm_pattern}\n" if rhythm_pattern else ""}
+{f"[가락 스타일]\n{melody_style}\n" if melody_style else ""}
+{f"[운율 패턴]\n{rhyme_scheme}\n" if rhyme_scheme else ""}
+
 [단어장 가사 생성 규칙 - 절대적으로 지켜야 합니다]
 1. **원본 단어와 뜻만 사용**: 위에 나열된 단어와 뜻만 가사에 포함하세요. 원본 텍스트에 없는 단어, 인물명, 장소명, 조직명 등을 절대 추가하지 마세요.
 2. **모든 단어-뜻 쌍 포함**: 가능한 한 많은 단어-뜻 쌍을 가사에 포함하세요.
@@ -125,6 +132,10 @@ class GeneratorAgent:
 
 [추천 사항]
 {recommendations if recommendations else ""}
+
+{f"[리듬 패턴]\n{rhythm_pattern}\n" if rhythm_pattern else ""}
+{f"[가락 스타일]\n{melody_style}\n" if melody_style else ""}
+{f"[운율 패턴]\n{rhyme_scheme}\n" if rhyme_scheme else ""}
 
 [중요 요구사항 - 반드시 지켜야 합니다]
 1. **원본 텍스트의 핵심 내용을 100% 반영**: 위에 제공된 "학습 텍스트"의 주요 정보, 사실, 개념을 모두 가사에 포함해야 합니다.
