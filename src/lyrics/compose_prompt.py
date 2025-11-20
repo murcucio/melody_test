@@ -127,19 +127,9 @@ def build_suno_payload(mnemonic_plan, study_text, final_lyrics: str = None, api_
             "진지한": "serious",
             "드라마틱한": "dramatic",
             "몽환적인": "dreamy",
-            "격렬한": "fierce",
             "우아한": "elegant",
             "자유로운": "free",
-            "긴장감 있는": "tense",
-            "편안한": "relaxed",
-            "신비로운": "mysterious",
-            "웅장한": "grand",
-            "섬세한": "delicate",
-            "역동적인": "dynamic",
-            "감성적인": "emotional",
-            "경쾌한": "light",
-            "잔잔한": "tranquil",
-            "열정적인": "passionate"
+            "편안한": "relaxed"
         }
         
         # 최대 3개만 선택하여 길이 제한
