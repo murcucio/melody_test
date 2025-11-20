@@ -111,7 +111,7 @@ pencil은 연필, pencil은 연필
 - 후렴구로 핵심 내용 반복
 """
             
-            prompt = f"""{few_shot_examples}
+            prompt = few_shot_examples + """
 
 [Chain-of-Thought 가사 생성 과정]
 
@@ -119,18 +119,18 @@ pencil은 연필, pencil은 연필
 
 **1단계: 핵심 개념 추출**
 - 위에 제공된 "학습 텍스트"에서 모든 단어-뜻 쌍을 정확히 파악하세요.
-- 추출된 단어-뜻 쌍: {vocabulary_list}
+- 추출된 단어-뜻 쌍: """ + vocabulary_list + """
 
 **2단계: 참고 동요 구조 분석**
-{context if context else "- 참고 동요 없음 (기본 동요 스타일 적용)"}
+""" + (context if context else "- 참고 동요 없음 (기본 동요 스타일 적용)") + """
 
 **3단계: 핵심 개념을 동요 구조에 매핑**
 - 각 단어-뜻 쌍을 동요의 반복 구조에 맞게 배치하세요.
 - 예: "단어는 뜻, 단어는 뜻" 형태로 반복
 
 **4단계: 운율과 리듬 패턴 적용**
-{("[리듬 패턴]\n" + rhythm_pattern + "\n") if rhythm_pattern else "- 기본 동요 리듬 적용"}
-{("[운율 패턴]\n" + rhyme_scheme + "\n") if rhyme_scheme else "- 기본 운율 구조 적용"}
+""" + (("[리듬 패턴]" + "\n" + rhythm_pattern + "\n") if rhythm_pattern else "- 기본 동요 리듬 적용") + """
+""" + (("[운율 패턴]" + "\n" + rhyme_scheme + "\n") if rhyme_scheme else "- 기본 운율 구조 적용") + """
 
 **5단계: 최종 가사 작성**
 - 위 단계들을 종합하여 최종 가사를 작성하세요.
@@ -139,22 +139,22 @@ pencil은 연필, pencil은 연필
 [현재 작업]
 
 [학습 텍스트 - 반드시 이 내용만 사용하세요]
-{study_text}
+""" + study_text + """
 
 [추출된 단어-뜻 쌍 - 반드시 모두 포함해야 합니다]
-{vocabulary_list}
+""" + vocabulary_list + """
 
-{context}
+""" + (context if context else "") + """
 
 [스타일 가이드]
-{style_guide if style_guide else "동요 스타일로 작성"}
+""" + (style_guide if style_guide else "동요 스타일로 작성") + """
 
 [추천 사항]
-{recommendations if recommendations else ""}
+""" + (recommendations if recommendations else "") + """
 
-{("[리듬 패턴]\n" + rhythm_pattern + "\n") if rhythm_pattern else ""}
-{("[가락 스타일]\n" + melody_style + "\n") if melody_style else ""}
-{("[운율 패턴]\n" + rhyme_scheme + "\n") if rhyme_scheme else ""}
+""" + (("[리듬 패턴]" + "\n" + rhythm_pattern + "\n") if rhythm_pattern else "") + """
+""" + (("[가락 스타일]" + "\n" + melody_style + "\n") if melody_style else "") + """
+""" + (("[운율 패턴]" + "\n" + rhyme_scheme + "\n") if rhyme_scheme else "") + """
 
 [엄격한 제약 조건 - 절대적으로 지켜야 합니다]
 1. **원본 단어와 뜻만 사용 (확률: 0% 추가)**: 위에 나열된 단어와 뜻만 가사에 포함하세요. 원본 텍스트에 없는 단어, 인물명, 장소명, 조직명 등을 절대 추가하지 마세요.
@@ -165,7 +165,7 @@ pencil은 연필, pencil은 연필
 6. **노래로 부르기 쉬운 형태**: 단어와 뜻을 리듬감 있게 반복하세요.
 7. **후렴구**: 주요 단어들을 반복하는 후렴구를 만들되, 원본에 없는 내용은 포함하지 마세요.
 8. **한국어**: 한국어로 작성해주세요.
-{f"9. **스타일 참고**: 위에 제공된 참고 동요들의 톤과 스타일만 참고하되, 내용은 반드시 원본 단어장만 사용하세요." if context else ""}
+""" + (("9. **스타일 참고**: 위에 제공된 참고 동요들의 톤과 스타일만 참고하되, 내용은 반드시 원본 단어장만 사용하세요.") if context else "") + """
 
 [생성된 가사]"""
         else:
@@ -197,7 +197,7 @@ pencil은 연필, pencil은 연필
 - 후렴구로 핵심 내용 강조
 """
             
-            prompt = f"""{few_shot_examples}
+            prompt = few_shot_examples + """
 
 [Chain-of-Thought 가사 생성 과정]
 
@@ -205,18 +205,18 @@ pencil은 연필, pencil은 연필
 
 **1단계: 핵심 개념 추출**
 - 위에 제공된 "학습 텍스트"에서 모든 주요 정보, 사실, 개념을 정확히 파악하세요.
-- 핵심 키워드: {key_terms_str if key_terms_str else "위 학습 텍스트의 모든 주요 내용"}
+- 핵심 키워드: """ + (key_terms_str if key_terms_str else "위 학습 텍스트의 모든 주요 내용") + """
 
 **2단계: 참고 동요 구조 분석**
-{context if context else "- 참고 동요 없음 (기본 동요 스타일 적용)"}
+""" + (context if context else "- 참고 동요 없음 (기본 동요 스타일 적용)") + """
 
 **3단계: 핵심 개념을 동요 구조에 매핑**
 - 학습 텍스트의 주요 정보를 동요의 반복 구조에 맞게 배치하세요.
 - 중요한 정보는 후렴구로 강조하세요.
 
 **4단계: 운율과 리듬 패턴 적용**
-{("[리듬 패턴]\n" + rhythm_pattern + "\n") if rhythm_pattern else "- 기본 동요 리듬 적용"}
-{("[운율 패턴]\n" + rhyme_scheme + "\n") if rhyme_scheme else "- 기본 운율 구조 적용"}
+""" + (("[리듬 패턴]" + "\n" + rhythm_pattern + "\n") if rhythm_pattern else "- 기본 동요 리듬 적용") + """
+""" + (("[운율 패턴]" + "\n" + rhyme_scheme + "\n") if rhyme_scheme else "- 기본 운율 구조 적용") + """
 
 **5단계: 최종 가사 작성**
 - 위 단계들을 종합하여 최종 가사를 작성하세요.
@@ -225,22 +225,22 @@ pencil은 연필, pencil은 연필
 [현재 작업]
 
 [학습 텍스트 - 반드시 이 내용을 기반으로 가사를 작성하세요]
-{study_text}
+""" + study_text + """
 
 [핵심 키워드 - 반드시 포함해야 할 주요 단어들]
-{key_terms_str if key_terms_str else "위 학습 텍스트의 모든 주요 내용"}
+""" + (key_terms_str if key_terms_str else "위 학습 텍스트의 모든 주요 내용") + """
 
-{context}
+""" + (context if context else "") + """
 
 [스타일 가이드]
-{style_guide if style_guide else "동요 스타일로 작성"}
+""" + (style_guide if style_guide else "동요 스타일로 작성") + """
 
 [추천 사항]
-{recommendations if recommendations else ""}
+""" + (recommendations if recommendations else "") + """
 
-{("[리듬 패턴]\n" + rhythm_pattern + "\n") if rhythm_pattern else ""}
-{("[가락 스타일]\n" + melody_style + "\n") if melody_style else ""}
-{("[운율 패턴]\n" + rhyme_scheme + "\n") if rhyme_scheme else ""}
+""" + (("[리듬 패턴]" + "\n" + rhythm_pattern + "\n") if rhythm_pattern else "") + """
+""" + (("[가락 스타일]" + "\n" + melody_style + "\n") if melody_style else "") + """
+""" + (("[운율 패턴]" + "\n" + rhyme_scheme + "\n") if rhyme_scheme else "") + """
 
 [엄격한 제약 조건 - 절대적으로 지켜야 합니다]
 1. **원본 텍스트의 핵심 내용을 100% 반영 (누락 금지)**: 위에 제공된 "학습 텍스트"의 주요 정보, 사실, 개념을 모두 가사에 포함해야 합니다. 중요한 정보를 누락하면 안 됩니다.
@@ -252,7 +252,7 @@ pencil은 연필, pencil은 연필
 7. **후렴구**: 핵심 내용을 반복하는 후렴구를 포함하면 더 좋습니다.
 8. **리듬감**: 학습자가 외우기 쉽도록 리듬감 있는 표현을 사용해주세요.
 9. **한국어**: 한국어로 작성해주세요.
-{f"10. **스타일 참고**: 위에 제공된 참고 동요들의 톤과 스타일만 참고하되, 내용은 반드시 원본 학습 텍스트를 기반으로 작성하세요." if context else ""}
+""" + (("10. **스타일 참고**: 위에 제공된 참고 동요들의 톤과 스타일만 참고하되, 내용은 반드시 원본 학습 텍스트를 기반으로 작성하세요.") if context else "") + """
 
 [생성된 가사]"""
 
