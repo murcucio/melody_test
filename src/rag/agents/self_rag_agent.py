@@ -86,6 +86,7 @@ class SelfRAGAgent:
 
 [개선된 가사]
 (검증 결과를 바탕으로 개선된 가사를 작성하세요. 개선이 필요 없으면 원본 가사를 그대로 반환하세요)
+**중요: 가사만 작성하고, 설명이나 평가 문구는 절대 포함하지 마세요.**
 """
         
         try:
@@ -133,10 +134,60 @@ class SelfRAGAgent:
         if match:
             improved = match.group(1).strip()
             if improved and len(improved) > 10:  # 의미있는 내용이 있으면
+                # 설명 문구 제거
+                improved = self._remove_explanation_text(improved)
                 return improved
         
         # 추출 실패 시 원본 반환
         return original_lyrics
+    
+    def _remove_explanation_text(self, text: str) -> str:
+        """가사에서 설명 문구 제거"""
+        import re
+        
+        # 설명 문구 패턴들
+        explanation_patterns = [
+            r'이렇게\s+개선된\s+가사는.*',
+            r'원본\s+내용의\s+핵심을.*',
+            r'리듬과\s+운율도.*',
+            r'개선된\s+가사는.*',
+            r'이\s+가사는.*',
+            r'위\s+가사는.*',
+            r'다음\s+가사는.*',
+            r'위의\s+가사는.*',
+            r'개선\s+결과.*',
+            r'검증\s+결과.*',
+        ]
+        
+        lines = text.split('\n')
+        cleaned_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # 설명 문구 패턴과 일치하는지 확인
+            is_explanation = False
+            for pattern in explanation_patterns:
+                if re.search(pattern, line, re.IGNORECASE):
+                    is_explanation = True
+                    break
+            
+            # 설명 문구가 아니고, 가사처럼 보이는 줄만 추가
+            if not is_explanation:
+                # 너무 긴 줄(설명일 가능성)은 제외
+                if len(line) < 100:  # 가사 한 줄은 보통 100자 이하
+                    cleaned_lines.append(line)
+        
+        # 빈 줄 제거 후 반환
+        result = '\n'.join(cleaned_lines).strip()
+        
+        # 결과가 너무 짧으면 원본 반환
+        if len(result) < 10:
+            return text.strip()
+        
+        return result
     
     def _extract_verification(self, result_text: str) -> Dict[str, Any]:
         """검증 결과 추출"""
