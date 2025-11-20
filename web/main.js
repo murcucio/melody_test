@@ -42,7 +42,35 @@ const emotionTags = [
 ];
 
 function setStatus(message) {
-  statusEl.textContent = message;
+  if (statusEl) {
+    statusEl.textContent = message;
+  }
+  // 진행 상태 바 업데이트 (새 디자인)
+  updateProgressBar(message);
+}
+
+function updateProgressBar(message) {
+  const progressFill = document.getElementById("progress-fill");
+  const progressPercent = document.getElementById("progress-percent");
+  
+  if (!progressFill || !progressPercent) return;
+  
+  // 메시지에 따라 진행률 추정
+  let percent = 0;
+  if (message.includes("가사 생성 중")) {
+    percent = 30;
+  } else if (message.includes("멜로디 가이드 생성 중")) {
+    percent = 50;
+  } else if (message.includes("Suno 노래 생성 중")) {
+    percent = 80;
+  } else if (message.includes("완료") || message.includes("생성 완료")) {
+    percent = 100;
+  } else if (message.includes("에러") || message.includes("중단")) {
+    percent = 0;
+  }
+  
+  progressFill.style.width = percent + "%";
+  progressPercent.textContent = percent + "%";
 }
 
 function setPre(el, value) {
@@ -82,32 +110,15 @@ function renderAudio(urls) {
   }
   urls.forEach((url, index) => {
     const audioWrapper = document.createElement("div");
-    audioWrapper.style.marginBottom = "16px";
+    audioWrapper.className = "audio-wrapper";
     
     const audio = document.createElement("audio");
     audio.controls = true;
     audio.src = url;
-    audio.style.width = "100%";
-    audio.style.marginBottom = "8px";
     
     const downloadBtn = document.createElement("button");
     downloadBtn.textContent = "다운로드";
-    downloadBtn.style.cssText = `
-      background: #10b981;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      margin-top: 4px;
-    `;
-    downloadBtn.onmouseover = () => {
-      downloadBtn.style.background = "#059669";
-    };
-    downloadBtn.onmouseout = () => {
-      downloadBtn.style.background = "#10b981";
-    };
+    downloadBtn.className = "btn-download";
     
     const filename = `learning-song-${index + 1}.mp3`;
     downloadBtn.onclick = () => downloadAudio(url, filename);
@@ -234,19 +245,19 @@ function enableControls() {
 }
 
 function showCancelButton() {
-  cancelBtn.style.display = "inline-block";
+  cancelBtn.classList.remove("hidden");
 }
 
 function hideCancelButton() {
-  cancelBtn.style.display = "none";
+  cancelBtn.classList.add("hidden");
 }
 
 function showMelodyButton() {
-  generateMelodyBtn.style.display = "inline-block";
+  generateMelodyBtn.classList.remove("hidden");
 }
 
 function hideMelodyButton() {
-  generateMelodyBtn.style.display = "none";
+  generateMelodyBtn.classList.add("hidden");
 }
 
 function fileToDataURL(file) {
@@ -532,9 +543,9 @@ function updateEmotionTagsCount() {
   if (countDisplay) {
     countDisplay.textContent = `${selectedEmotionTags.length} / 5개 선택됨`;
     if (selectedEmotionTags.length >= 5) {
-      countDisplay.style.color = "#ef4444";
+      countDisplay.classList.add("max");
     } else {
-      countDisplay.style.color = "#667295";
+      countDisplay.classList.remove("max");
     }
   }
 }
@@ -547,12 +558,14 @@ function toggleStudyText() {
   const container = document.getElementById("study-text-container");
   const arrow = document.getElementById("study-text-arrow");
   
-  if (container.style.display === "none") {
+  if (container.style.display === "none" || container.classList.contains("hidden")) {
     container.style.display = "block";
+    container.classList.remove("hidden");
     arrow.textContent = "▼";
     arrow.style.transform = "rotate(0deg)";
   } else {
     container.style.display = "none";
+    container.classList.add("hidden");
     arrow.textContent = "▶";
     arrow.style.transform = "rotate(0deg)";
   }

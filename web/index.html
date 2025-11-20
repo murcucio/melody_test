@@ -5,316 +5,172 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>학습용 멜로디 생성기</title>
     <link rel="icon" href="/static/favicon.ico" />
-    <style>
-      :root {
-        color-scheme: light dark;
-        font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
-      }
-      body {
-        margin: 0;
-        padding: 0;
-        background: #f5f6fa;
-        color: #1f2430;
-      }
-      main {
-        max-width: 960px;
-        margin: 0 auto;
-        padding: 32px 24px 64px;
-      }
-      h1 {
-        font-size: 1.8rem;
-        margin-bottom: 8px;
-      }
-      p.lead {
-        margin-top: 0;
-        margin-bottom: 24px;
-        color: #4f5b76;
-      }
-      section {
-        background: #ffffff;
-        border-radius: 16px;
-        box-shadow: 0 12px 30px rgba(31, 36, 48, 0.08);
-        padding: 24px;
-        margin-bottom: 24px;
-      }
-      label {
-        font-weight: 600;
-        display: block;
-        margin-bottom: 12px;
-      }
-      input[type="file"] {
-        display: block;
-        width: 100%;
-        margin-bottom: 16px;
-      }
-      textarea {
-        display: block;
-        width: 100%;
-        min-height: 120px;
-        padding: 12px;
-        border: 2px solid #e2e8f0;
-        border-radius: 8px;
-        font-size: 0.95rem;
-        font-family: inherit;
-        resize: vertical;
-        margin-bottom: 8px;
-        box-sizing: border-box;
-      }
-      textarea:focus {
-        outline: none;
-        border-color: #3b82f6;
-      }
-      .char-count {
-        font-size: 0.85rem;
-        color: #667295;
-        text-align: right;
-        margin-bottom: 16px;
-      }
-      .char-count.warning {
-        color: #f59e0b;
-      }
-      .char-count.error {
-        color: #ef4444;
-      }
-      .divider {
-        text-align: center;
-        margin: 24px 0;
-        color: #667295;
-        font-size: 0.9rem;
-        position: relative;
-      }
-      .divider::before,
-      .divider::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        width: 40%;
-        height: 1px;
-        background: #e2e8f0;
-      }
-      .divider::before {
-        left: 0;
-      }
-      .divider::after {
-        right: 0;
-      }
-      button {
-        background: #3b82f6;
-        color: #ffffff;
-        border: none;
-        border-radius: 999px;
-        padding: 12px 24px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-      }
-      button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 10px 18px rgba(59, 130, 246, 0.25);
-      }
-      button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-      }
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      .spinner {
-        display: inline-block;
-        animation: spin 1s linear infinite;
-      }
-      .status {
-        font-size: 0.95rem;
-        color: #2563eb;
-        margin-top: 12px;
-        min-height: 1.2em;
-      }
-      pre {
-        background: #0f172a;
-        color: #e2e8f0;
-        padding: 16px;
-        border-radius: 12px;
-        overflow-x: auto;
-        font-size: 0.9rem;
-        line-height: 1.5;
-        white-space: pre-wrap;
-        word-break: break-word;
-      }
-      .results h2 {
-        margin-top: 0;
-      }
-      .audio-list audio {
-        display: block;
-        margin-bottom: 12px;
-        width: 100%;
-      }
-      .file-list {
-        margin-top: 12px;
-        margin-bottom: 16px;
-      }
-      .file-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 12px;
-        background: #f8fafc;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        font-size: 0.9rem;
-      }
-      .file-item .file-name {
-        flex: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .file-item .file-type {
-        color: #667295;
-        font-size: 0.85rem;
-        margin-left: 8px;
-      }
-      .file-item button {
-        background: #ef4444;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 4px 8px;
-        font-size: 0.8rem;
-        cursor: pointer;
-        margin-left: 8px;
-      }
-      .file-item button:hover {
-        background: #dc2626;
-      }
-      .file-limit {
-        font-size: 0.85rem;
-        color: #667295;
-        margin-top: 4px;
-      }
-      .emotion-tag {
-        background: #f3f4f6;
-        color: #374151;
-        border: 2px solid #e5e7eb;
-        border-radius: 20px;
-        padding: 6px 14px;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        user-select: none;
-      }
-      .emotion-tag:hover {
-        background: #e5e7eb;
-        border-color: #d1d5db;
-      }
-      .emotion-tag.selected {
-        background: #3b82f6;
-        color: white;
-        border-color: #3b82f6;
-      }
-      .emotion-tag.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      footer {
-        text-align: center;
-        color: #667295;
-        font-size: 0.85rem;
-        margin-top: 48px;
-      }
-    </style>
-    <script>
-  // 만약 로컬 file:/// 이거나 http://localhost 로 열면 로컬 서버 사용
-  const isLocal = location.hostname === "localhost" || location.protocol === "file:";
-  
-  // Render나 Railway 등 배포 환경에서는 현재 도메인을 백엔드로 사용
-  // (같은 서버에서 프론트엔드와 백엔드를 모두 서빙하므로)
-  const isDeployed = !isLocal && (location.hostname.includes("render.com") || location.hostname.includes("railway.app"));
-  
-  window.BACKEND_BASE = isLocal 
-    ? "http://localhost:8000" 
-    : isDeployed
-    ? `${location.protocol}//${location.host}`  // 현재 도메인 사용
-    : "https://melodytest-production.up.railway.app";  // 기본값
-</script>
+    <link rel="stylesheet" href="/static/style.css" />
 
-<script type="module" src="/static/main.js"></script>
+    <script>
+      // 만약 로컬 file:/// 이거나 http://localhost 로 열면 로컬 서버 사용
+      const isLocal = location.hostname === "localhost" || location.protocol === "file:";
+      
+      // Render나 Railway 등 배포 환경에서는 현재 도메인을 백엔드로 사용
+      // (같은 서버에서 프론트엔드와 백엔드를 모두 서빙하므로)
+      const isDeployed = !isLocal && (location.hostname.includes("render.com") || location.hostname.includes("railway.app"));
+      
+      window.BACKEND_BASE = isLocal 
+        ? "http://localhost:8000" 
+        : isDeployed
+        ? `${location.protocol}//${location.host}`  // 현재 도메인 사용
+        : "https://melodytest-production.up.railway.app";  // 기본값
+    </script>
+
+    <script type="module" src="/static/main.js"></script>
   </head>
   <body>
-    <main>
-      <header>
-        <h1>학습 멜로디 생성</h1>
-        <p class="lead">
-          외우고 싶은 문장을 입력하거나, 이미지(최대 5장) 또는 PDF 파일을 업로드하여 기억하기 쉬운 멜로디와 함께 노래를 생성합니다. 
-          텍스트가 포함된 이미지, 수식 이미지, 지도 등 다양한 학습 자료를 지원합니다.
-        </p>
-      </header>
+    <!-- 상단 네비게이션 바 -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <img src="/static/asset/logo1.svg" alt="로고" />
+      </div>
+      <nav class="topbar-nav">
+        <a href="#" class="nav-link active">쫑알 생성</a>
+        <a href="#" class="nav-link">쫑알 기록</a>
+      </nav>
+      <!-- 구글 로그인 버튼은 기능 없으므로 숨김 -->
+      <div style="width: 120px;"></div>
+    </header>
 
-      <section>
-        <label for="text-input">외우고 싶은 문장 입력 (최대 300자)</label>
-        <textarea 
-          id="text-input" 
-          placeholder="예: 서울은 대한민국의 수도입니다. 인구는 약 1천만 명입니다."
-          maxlength="300"
-        ></textarea>
-        <div id="char-count" class="char-count">0 / 300</div>
-        
-        <div class="divider">또는</div>
-        
-        <label for="file-input">파일 업로드 (이미지 최대 5장, PDF 1개)</label>
-        <input id="file-input" type="file" accept="image/png,image/jpeg,image/jpg,application/pdf" multiple />
-        <div class="file-limit">이미지: 최대 5장, PDF: 최대 1개</div>
-        <div id="file-list" class="file-list"></div>
-        
-        <div id="emotion-tags-section" style="margin-bottom: 16px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600;">감정 태그 선택 (최대 5개) - 멜로디 생성 시 적용</label>
-          <div id="emotion-tags-container" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;"></div>
-          <div id="emotion-tags-count" style="font-size: 0.85rem; color: #667295;">0 / 5개 선택됨</div>
-        </div>
-        
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <button id="generate-btn" type="button">
-            <span id="generate-btn-text">가사 생성</span>
-            <span id="generate-btn-spinner" style="display: none; margin-left: 8px;">⏳</span>
-          </button>
-          <button id="cancel-btn" type="button" style="display: none; background: #ef4444;">가사 생성 중단</button>
-          <button id="generate-melody-btn" type="button" style="display: none; background: #10b981;">
-            <span id="melody-btn-text">멜로디 생성</span>
-            <span id="melody-btn-spinner" style="display: none; margin-left: 8px;">⏳</span>
-          </button>
-        </div>
-        <div id="status" class="status">텍스트를 입력하거나 이미지를 업로드하면 처리를 시작합니다.</div>
-      </section>
+    <div class="page">
+      <main class="main">
+        <!-- 상단 안내 배너 -->
+        <section class="card banner">
+          <img src="/static/asset/logo2.svg" alt="로고" />
+          <p class="banner-text">
+            쫑알은 외우기 어려운 공부 내용을 텍스트로 요약해 주며, 노래로 자동
+            변환해주는 AI 학습 서비스입니다.
+          </p>
+        </section>
 
-      <section class="results">
-        <h2>결과</h2>
-        <div style="margin-bottom: 16px;">
-          <h3 style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; user-select: none;" onclick="toggleStudyText()">
-            <span id="study-text-arrow" style="font-size: 0.9em; transition: transform 0.2s;">▶</span>
-            <span>추출된 텍스트</span>
-          </h3>
-          <div id="study-text-container" style="display: none; margin-top: 8px;">
-            <pre id="study-text">-</pre>
+        <!-- 2컬럼 레이아웃 -->
+        <section class="layout">
+          <!-- 왼쪽 컬럼 -->
+          <div class="layout-left">
+            <!-- 문장 입력 + 파일 업로드 카드 -->
+            <section class="card card-input">
+              <div class="card-header">
+                <div>
+                  <h1 class="page-title">외우고 싶은 문장을 입력해 주세요</h1>
+                  <p class="page-subtitle">(최대 300자 · 또는 파일 업로드)</p>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <!-- 텍스트 입력 -->
+                <div class="field-group">
+                  <label for="text-input" class="field-label">문장 입력</label>
+                  <textarea
+                    id="text-input"
+                    placeholder="예: 서울은 대한민국의 수도입니다. 인구는 약 1천만 명입니다."
+                    maxlength="300"
+                  ></textarea>
+                  <div id="char-count" class="char-count">0 / 300</div>
+                </div>
+
+                <div class="divider">또는 파일 업로드</div>
+
+                <!-- 파일 업로드 -->
+                <div class="field-group">
+                  <label for="file-input" class="field-label">파일 업로드</label>
+                  <input
+                    id="file-input"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,application/pdf"
+                    multiple
+                  />
+                  <p class="file-limit">이미지: 최대 5장, PDF: 최대 1개</p>
+                  <div id="file-list" class="file-list"></div>
+                </div>
+
+                <!-- 감정 태그 섹션 (기존 기능 유지) -->
+                <div class="field-group" id="emotion-tags-section">
+                  <label class="field-label">감정 태그 선택 (최대 5개) - 멜로디 생성 시 적용</label>
+                  <div id="emotion-tags-container" class="emotion-tags-container"></div>
+                  <div id="emotion-tags-count" class="emotion-tags-count" style="font-size: 12px; color: #9ca3af; margin-top: 6px;">0 / 5개 선택됨</div>
+                </div>
+
+                <!-- 버튼 그룹 -->
+                <div class="options-row" style="flex-wrap: wrap;">
+                  <div class="button-group" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button id="generate-btn" type="button" class="primary-btn">
+                      <span id="generate-btn-text">가사 생성</span>
+                      <span id="generate-btn-spinner" class="btn-spinner" style="display: none; margin-left: 8px;">⏳</span>
+                    </button>
+                    <button id="cancel-btn" type="button" class="btn-cancel hidden" style="background: #ef4444; color: white; border: none; border-radius: 999px; padding: 10px 22px; font-size: 14px; font-weight: 600; cursor: pointer;">가사 생성 중단</button>
+                    <button id="generate-melody-btn" type="button" class="btn-melody hidden" style="background: #10b981; color: white; border: none; border-radius: 999px; padding: 10px 22px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                      <span id="melody-btn-text">멜로디 생성</span>
+                      <span id="melody-btn-spinner" class="btn-spinner" style="display: none; margin-left: 8px;">⏳</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- 결과 카드 -->
+            <section class="card card-result results">
+              <div class="card-header">
+                <h2 class="card-title">결과</h2>
+              </div>
+              <div class="card-body">
+                <div class="field-group">
+                  <h3 class="field-title collapsible-header" onclick="toggleStudyText()" style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0 0 6px; user-select: none;">
+                    <span id="study-text-arrow" style="font-size: 0.9em; transition: transform 0.2s;">▶</span>
+                    <span>추출된 텍스트</span>
+                  </h3>
+                  <div id="study-text-container" class="collapsible-content" style="display: none; margin-top: 8px;">
+                    <pre id="study-text">-</pre>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <h3 class="field-title">생성된 가사</h3>
+                  <pre id="lyrics-text">-</pre>
+                </div>
+
+                <div class="field-group">
+                  <h3 class="field-title">멜로디 가이드</h3>
+                  <pre id="plan-text">-</pre>
+                </div>
+              </div>
+            </section>
           </div>
-        </div>
 
-        <h3>생성된 가사</h3>
-        <pre id="lyrics-text">-</pre>
+          <!-- 오른쪽 컬럼: 진행 상태 카드 -->
+          <aside class="layout-right">
+            <section class="card card-status">
+              <div class="status-illustration">
+                <img src="/static/asset/character1.svg" class="character1" alt="캐릭터" />
+                <div class="bubble-box">
+                  지금 쫑알을 준비하고 있어요.<br />
+                  잠시만 기다려 주세요!
+                </div>
+              </div>
+              <div class="status-bar-row">
+                <p class="status-title">쫑알 제작 중...</p>
+                <span id="progress-percent" class="status-percent">0%</span>
+              </div>
+              <div class="status-bar">
+                <div class="status-bar-fill" id="progress-fill"></div>
+              </div>
 
-        <h3>멜로디 가이드</h3>
-        <pre id="plan-text">-</pre>
+              <p id="status" class="status-text"></p>
 
-        <h3>오디오 결과</h3>
-        <div id="audio-output" class="audio-list">-</div>
-      </section>
+              <div id="audio-output" class="audio-list"></div>
+            </section>
+          </aside>
+        </section>
 
-      <footer>
-        API 백엔드 주소: <code id="backend-url"></code>
-      </footer>
-    </main>
+        <footer class="footer">
+          API 백엔드 주소: <code id="backend-url"></code>
+        </footer>
+      </main>
+    </div>
   </body>
 </html>
-
